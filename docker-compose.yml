@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: scalper_db
+    environment:
+      POSTGRES_DB: scalper_db
+      POSTGRES_USER: scalper_user
+      POSTGRES_PASSWORD: pass123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - scalper_network
+
+  # Redis for caching and sessions
+  redis:
+    image: redis:7-alpine
+    container_name: scalper_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - scalper_network
+
+  # n8n workflow automation
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: scalper_n8n
+    environment:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_PORT: 5433
+      DB_POSTGRESDB_DATABASE: n8n_db
+      DB_POSTGRESDB_USER: scalper_user
+      DB_POSTGRESDB_PASSWORD: pass123
+      N8N_BASIC_AUTH_ACTIVE: true
+      N8N_BASIC_AUTH_USER: admin
+      N8N_BASIC_AUTH_PASSWORD: scalper2025
+      WEBHOOK_URL: http://localhost:5678
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - postgres
+    networks:
+      - scalper_network
+
+volumes:
+  postgres_data:
+  n8n_data:
+
+networks:
+  scalper_network:
+    driver: bridge

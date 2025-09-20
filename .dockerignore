@@ -1,0 +1,65 @@
+# Fichiers et dossiers à exclure du contexte Docker
+
+# Répertoires de build
+scalper-java/target/
+scalper-java/.mvn/
+node_modules/
+dist/
+
+# Fichiers temporaires
+*.tmp
+*.log
+*.swp
+*.swo
+*~
+
+# IDE et éditeurs
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+README.md
+docs/
+*.md
+
+# Scripts de développement
+scripts/
+setup.sh
+validation-*.sh
+
+# Données et logs de développement
+logs/
+screenshots/
+data/
+
+# Fichiers OS
+.DS_Store
+Thumbs.db
+
+# Variables d'environnement (sécurité)
+.env
+.env.local
+.env.development
+.env.production
+
+# Coverage et tests
+coverage/
+test-results/
+scalper-java/target/surefire-reports/
+
+# Volumes Docker
+postgres_data/
+n8n_data/
