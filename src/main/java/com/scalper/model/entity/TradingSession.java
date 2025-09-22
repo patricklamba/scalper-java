@@ -91,6 +91,7 @@ public class TradingSession {
 
     @Min(0)
     @Column(name = "volume_total", columnDefinition = "BIGINT DEFAULT 0")
+    @Builder.Default
     private Long volumeTotal = 0L;
 
     @NotNull

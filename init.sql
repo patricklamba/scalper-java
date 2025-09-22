@@ -128,12 +128,12 @@ CREATE TABLE session_breakouts (
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT uk_session_breakouts UNIQUE(broken_level_id, breakout_session, breakout_time)
+    CONSTRAINT uk_session_breakouts UNIQUE(broken_level_id, breakout_session, breakout_timestamp)
 );
 
 -- Index pour analyse des breakouts
-CREATE INDEX idx_session_breakouts_symbol_time ON session_breakouts (symbol, breakout_time DESC);
-CREATE INDEX idx_session_breakouts_session ON session_breakouts (breakout_session, breakout_time DESC);
+CREATE INDEX idx_session_breakouts_symbol_time ON session_breakouts (symbol, breakout_timestamp DESC);
+CREATE INDEX idx_session_breakouts_session ON session_breakouts (breakout_session, breakout_timestamp DESC);
 
 -- ===============================
 -- 4. TABLE DES SIGNAUX DE TRADING ENRICHIS

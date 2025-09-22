@@ -216,6 +216,7 @@ class ValidationTestsEtape2 {
     @DisplayName("3.2 - APIs principales accessibles")
     void mainApisAccessible() throws Exception {
         // Test de tous les endpoints principaux
+
         mockMvc.perform(get("/api/levels/active/EURUSD"))
                 .andExpect(status().isOk());
 
