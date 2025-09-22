@@ -31,7 +31,7 @@ docker-compose*.yml
 .dockerignore
 
 # Documentation
-README.md
+ETAPE2-COMPLETE.md
 docs/
 *.md
 

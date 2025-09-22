@@ -81,9 +81,12 @@ ENV SPRING_OUTPUT_ANSI_ENABLED=ALWAYS
 ENV SERVER_PORT=8080
 ENV MANAGEMENT_SERVER_PORT=8081
 
-# Healthcheck
+# Cette commande APK fonctionnera dans le conteneur Linux
+RUN apk add --no-cache wget
+
+# Puis utiliser wget
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:${SERVER_PORT}/actuator/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8081/actuator/health || exit 1
 
 # Exposition des ports
 EXPOSE 8080 8081
