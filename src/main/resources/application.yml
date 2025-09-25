@@ -3,9 +3,6 @@ spring:
   application:
     name: scalper-assistant
 
-  profiles:
-    active: dev
-
   # Configuration JPA/Hibernate
   jpa:
     hibernate:
@@ -121,7 +118,7 @@ springdoc:
     version: 1.0.0
 
 ---
-# Profil Development
+# Profil Development - MODE SIMULATEUR
 spring:
   config:
     activate:
@@ -157,7 +154,7 @@ spring:
       ddl-auto: update
     show-sql: true
 
-# Configuration scalper pour développement
+# Configuration scalper pour développement - SIMULATEUR
 scalper:
   sessions:
     timezone: "UTC"
@@ -205,13 +202,197 @@ scalper:
       - investing
     min-impact: HIGH
 
+  # ÉTAPE 3 - Configuration Broker SIMULATEUR uniquement
+  broker:
+    enabled: true
+    type: CTRADER
+    simulation-mode: true  # SIMULATEUR en dev
+
+    simulation:
+      speed-multiplier: 1
+      volatility-factor: 1.0
+      enable-realistic-spreads: true
+      enable-weekend-gaps: true
+      symbols:
+        - symbol: "EURUSD"
+          base-price: 1.0850
+          daily-range-pips: 80
+          spread-pips: 0.5
+        - symbol: "XAUUSD"
+          base-price: 1950.0
+          daily-range-pips: 1500
+          spread-pips: 20
+
+  # ÉTAPE 3 - Configuration Market Data
+  market-data:
+    collection:
+      enabled: true
+      timeframes: ["M1", "M5", "M30"]
+      max-history-candles: 1000
+      collection-interval-seconds: 60
+
+    cache:
+      ttl-seconds: 300
+      max-cache-size: 10000
+
+    sessions:
+      timezone: "UTC"
+      asia-start: "00:00"
+      asia-end: "06:00"
+      london-start: "07:00"
+      london-end: "11:00"
+      newyork-start: "12:00"
+      newyork-end: "16:00"
+
 logging:
   level:
     com.scalper: DEBUG
     org.springframework.web: DEBUG
 
 ---
-# Profil Docker
+# Profil cTrader - API RÉELLE pour tests locaux
+spring:
+  config:
+    activate:
+      on-profile: ctrader
+
+  # Database locale (même que dev)
+  datasource:
+    url: jdbc:postgresql://localhost:5433/scalper_db
+    username: scalper_user
+    password: pass123
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # Redis local
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000ms
+    jedis:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 2
+
+  # JPA
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+# Configuration cTrader API RÉELLE
+scalper:
+  # Mêmes configs que dev sauf broker
+  sessions:
+    timezone: "UTC"
+    asia:
+      start-hour: 0
+      end-hour: 6
+    london:
+      start-hour: 7
+      end-hour: 11
+    newyork:
+      start-hour: 12
+      end-hour: 16
+
+  patterns:
+    detection:
+      enabled: true
+      min-confidence: 0.7
+    asia-breakout:
+      min-range-pips: 20
+      max-range-pips: 80
+      volume-confirmation: true
+    london-retest:
+      max-time-since-break: 3
+      min-level-importance: 0.75
+    intra-session-bounce:
+      min-rejection-pips: 5
+      max-level-age: 8
+
+  screenshots:
+    enabled: true
+    base-path: "./screenshots"
+    driver: chrome
+    headless: true
+    timeout: 15
+
+  telegram:
+    enabled: false # Désactivé en local
+    bot-token: ""
+    chat-id: ""
+
+  news:
+    enabled: true
+    sources:
+      - forexfactory
+      - investing
+    min-impact: HIGH
+
+  # ÉTAPE 3 - Configuration Broker cTrader API RÉELLE
+  broker:
+    enabled: true
+    type: CTRADER
+    simulation-mode: false  # API RÉELLE
+
+    ctrader:
+      # Credentials OAuth2
+      client-id: "17551_BHn2FEUPNaj1CdJnoiGtnjfKZBg9ovMK5NIxmY7RKw0WWUR1tS"
+      client-secret: "EHeZm6ajOZ7LWCpl2QEWQXL68blj7gkBZsoS8OTxdRHp2ZbLb0"
+
+      # URLs cTrader Open API
+      base-url: "https://openapi.ctrader.com"
+      redirect-uri: "http://localhost:8080/api/auth/ctrader/callback"
+
+      # Account ID
+      account-id: "patricklamba"
+
+      # Configuration timeout et retry
+      connection-timeout: 30000 # 30 secondes
+      read-timeout: 60000       # 60 secondes
+      max-retries: 3
+
+  # Market Data - collecte plus fréquente pour API réelle
+  market-data:
+    collection:
+      enabled: true
+      collection-interval-seconds: 30  # Plus fréquent
+      timeframes: ["M1", "M5", "M30"]
+      max-history-candles: 1000
+
+    cache:
+      ttl-seconds: 60  # Cache plus court
+      max-cache-size: 50000
+
+    sessions:
+      timezone: "UTC"
+      asia-start: "00:00"
+      asia-end: "06:00"
+      london-start: "07:00"
+      london-end: "11:00"
+      newyork-start: "12:00"
+      newyork-end: "16:00"
+
+# Configuration RestTemplate pour cTrader API
+ctrader:
+  rest:
+    connection-pool-size: 20
+    max-connections-per-route: 10
+
+# Logging spécifique cTrader
+logging:
+  level:
+    com.scalper.service.broker.BrokerConnectionService: DEBUG
+    org.springframework.web.client.RestTemplate: DEBUG
+
+---
+# Profil Docker - API RÉELLE
 spring:
   config:
     activate:
@@ -247,7 +428,7 @@ spring:
       ddl-auto: validate
     show-sql: false
 
-# Configuration scalper pour Docker
+# Configuration scalper pour Docker - API RÉELLE
 scalper:
   sessions:
     timezone: "UTC"
@@ -295,16 +476,43 @@ scalper:
       - investing
     min-impact: HIGH
 
+  # ÉTAPE 3 - Configuration Broker cTrader Docker - API RÉELLE
   broker:
     enabled: ${BROKER_ENABLED:true}
-    host: ${BROKER_HOST:localhost}
-    port: ${BROKER_PORT:8001}
-    login: ${BROKER_LOGIN:}
-    password: ${BROKER_PASSWORD:}
-    server: ${BROKER_SERVER:}
+    type: CTRADER
+    simulation-mode: false  # API RÉELLE
+
+    ctrader:
+      client-id: "17551_BHn2FEUPNaj1CdJnoiGtnjfKZBg9ovMK5NIxmY7RKw0WWUR1tS"
+      client-secret: "${CTRADER_CLIENT_SECRET:EHeZm6ajOZ7LWCpl2QEWQXL68blj7gkBZsoS8OTxdRHp2ZbLb0}"
+      base-url: "https://openapi.ctrader.com"
+      redirect-uri: "http://scalper-app:8080/api/auth/ctrader/callback"
+      connection-timeout: 30000
+      read-timeout: 60000
+      max-retries: 3
+
+  market-data:
+    collection:
+      enabled: true
+      timeframes: ["M1", "M5", "M30"]
+      max-history-candles: 1000
+      collection-interval-seconds: 60
+
+    cache:
+      ttl-seconds: 300
+      max-cache-size: 10000
+
+    sessions:
+      timezone: "UTC"
+      asia-start: "00:00"
+      asia-end: "06:00"
+      london-start: "07:00"
+      london-end: "11:00"
+      newyork-start: "12:00"
+      newyork-end: "16:00"
 
 ---
-# Profil Production
+# Profil Production - API RÉELLE
 spring:
   config:
     activate:
@@ -340,7 +548,7 @@ spring:
       ddl-auto: validate
     show-sql: false
 
-# Configuration scalper pour Production
+# Configuration scalper pour Production - API RÉELLE
 scalper:
   sessions:
     timezone: "UTC"
@@ -388,13 +596,40 @@ scalper:
       - investing
     min-impact: HIGH
 
+  # ÉTAPE 3 - Configuration Broker cTrader Production - API RÉELLE
   broker:
     enabled: true
-    host: ${BROKER_HOST}
-    port: ${BROKER_PORT}
-    login: ${BROKER_LOGIN}
-    password: ${BROKER_PASSWORD}
-    server: ${BROKER_SERVER}
+    type: CTRADER
+    simulation-mode: false  # API RÉELLE
+
+    ctrader:
+      client-id: "17551_BHn2FEUPNaj1CdJnoiGtnjfKZBg9ovMK5NIxmY7RKw0WWUR1tS"
+      client-secret: "${CTRADER_CLIENT_SECRET}"
+      base-url: "https://openapi.ctrader.com"
+      redirect-uri: "${APP_BASE_URL}/api/auth/ctrader/callback"
+      connection-timeout: 30000
+      read-timeout: 60000
+      max-retries: 5
+
+  market-data:
+    collection:
+      enabled: true
+      timeframes: ["M1", "M5", "M30"]
+      max-history-candles: 2000
+      collection-interval-seconds: 30  # Plus fréquent en prod
+
+    cache:
+      ttl-seconds: 180  # Cache plus court en prod
+      max-cache-size: 20000
+
+    sessions:
+      timezone: "UTC"
+      asia-start: "00:00"
+      asia-end: "06:00"
+      london-start: "07:00"
+      london-end: "11:00"
+      newyork-start: "12:00"
+      newyork-end: "16:00"
 
 logging:
   level:
